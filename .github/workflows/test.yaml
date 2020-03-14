@@ -1,0 +1,26 @@
+name: test
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Go.
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.13.6
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v1
+      - uses: actions/cache@v1
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+      - name: Static Analysis
+        run: make lint
+      - name: Unit tests
+        run: make test

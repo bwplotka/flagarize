@@ -146,17 +146,6 @@ func TestFlagarize(t *testing.T) {
 		testutil.NotOk(t, err)
 		testutil.Equals(t, "flagarize: flagarize field \"F\" custom Flagarizer is non receiver pointer", err.Error())
 	})
-	t.Run("custom non pointer flagarizer", func(t *testing.T) {
-		type wrong struct {
-			F customDuration `flagarize:"help=help"`
-		}
-		w := &wrong{}
-
-		app := newTestKingpin(t)
-		err := flagarize.Flagarize(app, w)
-		testutil.NotOk(t, err)
-		testutil.Equals(t, "flagarize: flagarize field \"F\" is not a pointer, but custom Flagarizer was used", err.Error())
-	})
 
 	type testConfig struct {
 		Ignore    int
@@ -202,7 +191,7 @@ func TestFlagarize(t *testing.T) {
 		F22Slice  []net.IP          `flagarize:"help=19slice"`
 		F23       units.Base2Bytes  `flagarize:"help=20"`
 
-		Cf1 *customDuration              `flagarize:"help=21"`
+		Cf1 customDuration               `flagarize:"help=21"`
 		Cf2 *timeduration.Value          `flagarize:"help=22"`
 		Cf3 *pathorcontent.PathOrContent `flagarize:"help=23"`
 	}
@@ -322,7 +311,6 @@ Flags:
 		testutil.Equals(t, expectedUsage, b.String())
 	})
 
-	twoTwoFourDuration := customDuration(244 * time.Hour)
 	var someString string
 	fileLICENSEPath := "LICENSE"
 	for _, tcase := range []struct {
@@ -335,7 +323,6 @@ Flags:
 				F12_:      "12",
 				F12Slice_: "12Slice",
 				F17:       map[string]string{},
-				Cf1:       new(customDuration),
 				Cf2:       &timeduration.Value{},
 				Cf3:       pathorcontent.New("cf3", false, &someString, &someString),
 			}},
@@ -430,7 +417,7 @@ Flags:
 				F22:      net.IPv4(0x1, 0x2, 0x3, 0x4),
 				F22Slice: []net.IP{net.IPv4(0x1, 0x2, 0x3, 0x5), net.IPv4(0x1, 0x2, 0x3, 0x6), net.IPv4(0x1, 0x2, 0x3, 0x7)},
 				F23:      units.Base2Bytes(232 * 1024 * 1024),
-				Cf1:      &twoTwoFourDuration,
+				Cf1:      customDuration(244 * time.Hour),
 				Cf2: &timeduration.Value{
 					Time: func() *time.Time { t, _ := time.Parse(time.RFC3339, "2020-03-18T12:01:33Z"); return &t }(),
 				},

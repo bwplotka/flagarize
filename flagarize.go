@@ -276,7 +276,7 @@ func parseStruct(r KingpinRegistry, value reflect.Value, o opts) error {
 
 func invokeCustomFlagarizer(r KingpinRegistry, f Flagarizer, tag *Tag, fieldValue reflect.Value, field reflect.StructField) error {
 	if fieldValue.Kind() != reflect.Ptr {
-		return errors.Errorf("flagarize field %q is not a pointer, but custom Flagarizer was used", field.Name)
+		fieldValue = fieldValue.Addr()
 	}
 	if fieldValue.IsNil() {
 		v := reflect.New(fieldValue.Type().Elem())

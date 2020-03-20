@@ -5,7 +5,7 @@ FILES_TO_FMT      ?= $(shell find . -path ./vendor -prune -o -name '*.go' -print
 # The `go env GOPATH` will work for all cases for Go 1.8+.
 GOPATH            ?= $(shell go env GOPATH)
 
-TMP_GOPATH        ?= /tmp/thanos-go
+TMP_GOPATH        ?= /tmp/flagarize-go
 GOBIN             ?= $(firstword $(subst :, ,${GOPATH}))/bin
 GO111MODULE       ?= on
 export GO111MODULE
@@ -42,7 +42,6 @@ FAILLINT                ?=$(GOBIN)/faillint-$(FAILLINT_VERSION)
 # arguments:
 # $(1): Install path. (e.g github.com/campoy/embedmd)
 # $(2): Tag or revision for checkout.
-# TODO(bwplotka): Move to just using modules, however make sure to not use or edit Thanos go.mod file!
 define fetch_go_bin_version
 	@mkdir -p $(GOBIN)
 	@mkdir -p $(TMP_GOPATH)
@@ -65,7 +64,6 @@ endef
 # arguments:
 # $(1): Install path. (e.g github.com/campoy/embedmd)
 # $(2): Tag or revision for checkout.
-# TODO(bwplotka): Move to just using modules, however make sure to not use or edit Thanos go.mod file!
 define fetch_go_bin_version_mod
 	@mkdir -p $(GOBIN)
 	@mkdir -p $(TMP_GOPATH)
@@ -113,21 +111,21 @@ help: ## Displays help.
 all: format build
 
 .PHONY: bench
-bench: ## Run $(THANOS_BENCH_FUNC) benchmarks and compare with master using https://github.com/prometheus/test-infra/tree/master/funcbench.
+bench: ## Run $(BENCH_FUNC) benchmarks and compare with master using https://github.com/prometheus/test-infra/tree/master/funcbench.
 bench: $(FUNCBENCH)
-	@echo ">> benchmark $(THANOS_BENCH_FUNC) and compare with master"
+	@echo ">> benchmark $(BENCH_FUNC) and compare with master"
 	@$(FUNCBENCH) -v --bench-time=30s --timeout=2h --result-cache=/tmp/cache master '"$(BENCH_FUNC)"'
 
 .PHONY: bench-master
-bench-master: ## Run $(THANOS_BENCH_FUNC) benchmarks and compare with newest using https://github.com/prometheus/test-infra/tree/master/funcbench.
+bench-master: ## Run $(BENCH_FUNC) benchmarks and compare with newest using https://github.com/prometheus/test-infra/tree/master/funcbench.
 bench-master: $(FUNCBENCH)
-	@echo ">> benchmark $(THANOS_BENCH_FUNC) and compare with: $(shell git tag | grep -E ^v[0-9]+\.[0-9]\.[0-9]+$$ | sort -t . -k1,1n -k2,2n -k3,3n | tail -1)"
+	@echo ">> benchmark $(BENCH_FUNC) and compare with: $(shell git tag | grep -E ^v[0-9]+\.[0-9]\.[0-9]+$$ | sort -t . -k1,1n -k2,2n -k3,3n | tail -1)"
 	@$(FUNCBENCH) -v --bench-time=30s --timeout=2h --result-cache=/tmp/cache  "$(shell git tag | grep -E ^v[0-9]+\.[0-9]\.[0-9]+$$ | sort -t . -k1,1n -k2,2n -k3,3n | tail -1)" '"$(BENCH_FUNC)"'
 
 .PHONY: bench-release
-bench-release: ## Run $(THANOS_BENCH_FUNC) benchmarks and compare with older release using https://github.com/prometheus/test-infra/tree/master/funcbench.
+bench-release: ## Run $(BENCH_FUNC) benchmarks and compare with older release using https://github.com/prometheus/test-infra/tree/master/funcbench.
 bench-release: $(FUNCBENCH)
-	@echo ">> benchmark $(THANOS_BENCH_FUNC) and compare with"
+	@echo ">> benchmark $(BENCH_FUNC) and compare with"
 	@$(FUNCBENCH) -v --bench-time=30s --timeout=2h --result-cache=/tmp/cache "$(shell git tag | grep -E ^v[0-9]+\.[0-9]\.[0-9]+$$ | sort -t . -k1,1n -k2,2n -k3,3n | grep -B1 $(CURRENT_RELEASE) | head -1)" '"$(BENCH_FUNC)"'
 
 .PHONY: deps
@@ -170,10 +168,10 @@ lint: ## Runs various static analysis against our code.
 lint: check-git deps $(GOLANGCILINT) $(MISSPELL) $(FAILLINT)
 	$(call require_clean_work_tree,"detected not clean master before running lint")
 	@echo ">> verifying modules being imported"
-	@$(FAILLINT) -paths "errors=github.com/pkg/errors,\
+	@$(FAILLINT) -paths "errors=github.com/pkg/errors,github.com/thanos-io/thanos/pkg/testutil=github.com/bwplotka/flagarize/testutil" ./...
 	@$(FAILLINT) -paths "fmt.{Print,PrintfPrintln,Sprint}" -ignore-tests ./...
 	@echo ">> examining all of the Go files"
-	@go vet -stdmethods=false ./pkg/... ./cmd/... && go vet doc.go
+	@go vet -stdmethods=false ./...
 	@echo ">> linting all of the Go files GOGC=${GOGC}"
 	@$(GOLANGCILINT) run
 	@echo ">> detecting misspells"

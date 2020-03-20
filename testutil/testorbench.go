@@ -1,4 +1,9 @@
-// Copyright (c) The Thanos Authors.
+// Copyright (c) Bartłomiej Płotka @bwplotka
+// Licensed under the Apache License 2.0.
+
+// Taken from Thanos project.
+//
+//Copyright (c) The Thanos Authors.
 // Licensed under the Apache License 2.0.
 
 package testutil

@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/url"
 	"os"
+	"path/filepath"
 	"regexp"
 	"testing"
 	"time"
@@ -458,4 +459,48 @@ Flags:
 			testutil.Equals(t, tcase.expected, c)
 		})
 	}
+}
+
+type ComponentAOptions struct {
+	Field1 string
+}
+
+func ExampleFlagarize() {
+	// Create new kingpin app as usual.
+	a := kingpin.New(filepath.Base(os.Args[0]), "<Your CLI description>")
+
+	// Define you own config.
+	type ConfigForCLI struct {
+		Field1 string                   `flagarize:"name=config.file|help=Prometheus configuration file path.|default=prometheus.yml"`
+		Field2 []string                 `flagarize:"name=web.external-url|help=The URL under which Prometheus is externally reachable (for example, if Prometheus is served via a reverse proxy). Used for generating relative and absolute links back to Prometheus itself. If the URL has a path portion, it will be used to prefix all HTTP endpoints served by Prometheus. If omitted, relevant URL components will be derived automatically.|placeholder=<URL>"`
+		Field3 int                      `flagarize:"name=storage.tsdb.path|help=Base path for metrics storage.|default=data/"`
+		Field4 flagarize.TimeOrDuration `flagarize:"name=storage.remote.flush-deadline|help=How long to wait flushing sample on shutdown or config reload.|default=1m|placeholder=<duration>"`
+
+		NotFromFlags int `flagarize:"name=query.max-concurrency|help=Maximum number of queries executed concurrently.|default=20"`
+
+		ComponentA ComponentAOptions
+	}
+
+	// Create new config.
+	cfg := &ConfigForCLI{}
+
+	// Flagarize it! (Register flags from config).
+	if err := flagarize.Flagarize(a, &cfg); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(2)
+	}
+
+	// You can define some fields as usual as well.
+	var notInConfigField time.Duration
+	a.Flag("some-field10", "...").
+		DurationVar(&notInConfigField)
+
+	// Parse flags as usual.
+	if _, err := a.Parse(os.Args[1:]); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(2)
+	}
+
+	// Config is filled with flags from value!
+	_ = cfg.Field1
 }

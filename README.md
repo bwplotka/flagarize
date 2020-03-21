@@ -185,7 +185,7 @@ cfg := struct {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(2)
 	}
-    
+
 	if _, err := a.Parse(os.Args[1:]); err != nil {
 		fmt.Fprintln(os.Stderr, errors.Wrapf(err, "Error parsing commandline arguments"))
 		a.Usage(os.Args[1:])
@@ -195,11 +195,11 @@ cfg := struct {
     // Done!
 ```
 
-Much cleaner (: 
+Much cleaner (:
 
 ## Custom Type Parsing
 
-Flagarize allows parsing of native types like int, string, etc (all that kingpin supports). For custom 
+Flagarize allows parsing of native types like int, string, etc (all that kingpin supports). For custom
 types it's enough if your type implements part of `kingping.Value` interface as follows:
 
 ```go

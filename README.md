@@ -72,7 +72,7 @@ func main() {
 To see production example see:
 
  * [Thanos](todo)
- * [Prometheus](todo)
+ * [Prometheus](https://github.com/prometheus/prometheus/pull/7026)
 
 ## But Bartek, such Go projects already exists!
 
@@ -84,15 +84,118 @@ Well, depends. It might get quite weird. Here is how it could look with and with
 
 ### Without
 
-```
+```go
+	cfg := struct {
+		configFile string
 
+		localStoragePath    string
+		notifier            notifier.Options
+		notifierTimeout     model.Duration
+		forGracePeriod      model.Duration
+		outageTolerance     model.Duration
+		resendDelay         model.Duration
+		web                 web.Options
+		tsdb                tsdbOptions
+		lookbackDelta       model.Duration
+		webTimeout          model.Duration
+		queryTimeout        model.Duration
+		queryConcurrency    int
+		queryMaxSamples     int
+		RemoteFlushDeadline model.Duration
+
+		prometheusURL   string
+		corsRegexString string
+
+		promlogConfig promlog.Config
+	}{}
+
+	a := kingpin.New(filepath.Base(os.Args[0]), "The Prometheus monitoring server")
+	a.Version(version.Print("prometheus"))
+	a.HelpFlag.Short('h')
+
+	a.Flag("config.file", "Prometheus configuration file path.").
+		Default("prometheus.yml").StringVar(&cfg.configFile)
+
+	a.Flag("web.listen-address", "Address to listen on for UI, API, and telemetry.").
+		Default("0.0.0.0:9090").StringVar(&cfg.web.ListenAddress)
+
+	a.Flag("web.read-timeout",
+		"Maximum duration before timing out read of the request, and closing idle connections.").
+		Default("5m").SetValue(&cfg.webTimeout)
+
+	a.Flag("web.max-connections", "Maximum number of simultaneous connections.").
+		Default("512").IntVar(&cfg.web.MaxConnections)
+
+	a.Flag("web.external-url",
+		"The URL under which Prometheus is externally reachable (for example, if Prometheus is served via a reverse proxy). Used for generating relative and absolute links back to Prometheus itself. If the URL has a path portion, it will be used to prefix all HTTP endpoints served by Prometheus. If omitted, relevant URL components will be derived automatically.").
+		PlaceHolder("<URL>").StringVar(&cfg.prometheusURL)
+
+	a.Flag("web.route-prefix",
+		"Prefix for the internal routes of web endpoints. Defaults to path of --web.external-url.").
+		PlaceHolder("<path>").StringVar(&cfg.web.RoutePrefix)
+
+	a.Flag("web.user-assets", "Path to static asset directory, available at /user.").
+		PlaceHolder("<path>").StringVar(&cfg.web.UserAssetsPath)
+
+	a.Flag("web.enable-lifecycle", "Enable shutdown and reload via HTTP request.").
+		Default("false").BoolVar(&cfg.web.EnableLifecycle)
+
+	a.Flag("web.enable-admin-api", "Enable API endpoints for admin control actions.").
+		Default("false").BoolVar(&cfg.web.EnableAdminAPI)
+
+	a.Flag("web.console.templates", "Path to the console template directory, available at /consoles.").
+		Default("consoles").StringVar(&cfg.web.ConsoleTemplatesPath)
+
+   //... Thousands more of that.
+
+	if _, err := a.Parse(os.Args[1:]); err != nil {
+		fmt.Fprintln(os.Stderr, errors.Wrapf(err, "Error parsing commandline arguments"))
+		a.Usage(os.Args[1:])
+		os.Exit(2)
+	}
 ```
 
 ### With flagarize
 
+```go
+cfg := struct {
+		ConfigFile           string         `flagarize:"name=config.file|help=Prometheus configuration file path.|default=prometheus.yml"`
+		ExternalURL          string         `flagarize:"name=web.external-url|help=The URL under which Prometheus is externally reachable (for example, if Prometheus is served via a reverse proxy). Used for generating relative and absolute links back to Prometheus itself. If the URL has a path portion, it will be used to prefix all HTTP endpoints served by Prometheus. If omitted, relevant URL components will be derived automatically.|placeholder=<URL>"`
+		StoragePath          string         `flagarize:"name=storage.tsdb.path|help=Base path for metrics storage.|default=data/"`
+		RemoteFlushDeadline  model.Duration `flagarize:"name=storage.remote.flush-deadline|help=How long to wait flushing sample on shutdown or config reload.|default=1m|placeholder=<duration>"`
+		RulesOutageTolerance model.Duration `flagarize:"name=rules.alert.for-outage-tolerance|help=Max time to tolerate prometheus outage for restoring \"for\" state of alert.|default=1h"`
+		RulesForGracePeriod  model.Duration `flagarize:"name=rules.alert.for-grace-period|help=Minimum duration between alert and restored \"for\" state. This is maintained only for alerts with configured \"for\" time greater than grace period.|default=10m"`
+		RulesResendDelay     model.Duration `flagarize:"name=rules.alert.resend-delay|help=Minimum amount of time to wait before resending an alert to Alertmanager.|default=1m"`
+		LookbackDelta        model.Duration `flagarize:"name=query.lookback-delta|help=The maximum lookback duration for retrieving metrics during expression evaluations and federation.|default=5m"`
+		QueryTimeout         model.Duration `flagarize:"name=query.timeout|help=Maximum time a query may take before being aborted.|default=2m"`
+		QueryConcurrency     int            `flagarize:"name=query.max-concurrency|help=Maximum number of queries executed concurrently.|default=20"`
+		QueryMaxSamples      int            `flagarize:"name=query.max-samples|help=Maximum number of samples a single query can load into memory. Note that queries will fail if they try to load more samples than this into memory, so this also limits the number of samples a query can return.|default=50000000"`
+
+		Web      web.Options
+		Notifier notifier.Options
+		TSDB     tsdbOptions
+		PromLog  promlog.Config
+	}{}
+
+	a := kingpin.New(filepath.Base(os.Args[0]), "The Prometheus monitoring server")
+	a.Version(version.Print("prometheus"))
+	a.HelpFlag.Short('h')
+
+	if err := flagarize.Flagarize(a, &cfg); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(2)
+	}
+    
+	if _, err := a.Parse(os.Args[1:]); err != nil {
+		fmt.Fprintln(os.Stderr, errors.Wrapf(err, "Error parsing commandline arguments"))
+		a.Usage(os.Args[1:])
+		os.Exit(2)
+	}
+
+    // Done!
 ```
 
-```
+Much cleaner (: 
 
 ## Custom Type Parsing
 

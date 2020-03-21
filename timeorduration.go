@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/bwplotka/flagarize/internal/timestamp"
-	"github.com/prometheus/common/model"
 )
 
 // multiError is a slice of errors implementing the error interface. It is used
@@ -45,7 +44,7 @@ func (errs *multiError) Append(err error) {
 // Only one will be set.
 type TimeOrDuration struct {
 	Time *time.Time
-	Dur  *model.Duration
+	Dur  *time.Duration
 }
 
 // FlagarizeSetValue converts string to TimeOrDuration.
@@ -64,7 +63,7 @@ func (tdv *TimeOrDuration) FlagarizeSetValue(s string) error {
 		minus = true
 		s = s[1:]
 	}
-	dur, err := model.ParseDuration(s)
+	dur, err := time.ParseDuration(s)
 	if err != nil {
 		merr.Append(err)
 		return merr

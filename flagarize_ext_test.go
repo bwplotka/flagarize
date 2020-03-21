@@ -18,20 +18,8 @@ import (
 	"github.com/bwplotka/flagarize"
 	"github.com/bwplotka/flagarize/testutil"
 	"github.com/pkg/errors"
-	"github.com/prometheus/common/model"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
-
-type customDuration model.Duration
-
-func (d *customDuration) Flagarize(r flagarize.FlagRegisterer, tag *flagarize.Tag, ptr unsafe.Pointer) error {
-	if tag == nil {
-		return nil
-	}
-	m := (*model.Duration)(ptr)
-	tag.Flag(r).DurationVar((*time.Duration)(m))
-	return nil
-}
 
 type nonReceiveFlagarizeType struct{}
 
@@ -214,7 +202,6 @@ func TestFlagarize(t *testing.T) {
 		F22Slice              []net.IP          `flagarize:"help=19slice"`
 		F23                   units.Base2Bytes  `flagarize:"help=20"`
 
-		Cf1 customDuration            `flagarize:"help=21"`
 		Cf2 *flagarize.TimeOrDuration `flagarize:"help=22"`
 		Cf3 *flagarize.PathOrContent  `flagarize:"help=23"`
 		Cf4 flagarize.Regexp          `flagarize:"help=24"`
@@ -266,7 +253,6 @@ Flags:
   --f22=F22                  19
   --f22_slice=F22_SLICE ...  19slice
   --f23=F23                  20
-  --cf1=CF1                  21
   --cf2=CF2                  22
   --cf3-file=<file-path>     Path to 23
   --cf3=<content>            Alternative to 'cf3-file' flag (lower priority).
@@ -395,7 +381,6 @@ Flags:
 				"--f22", "1.2.3.4",
 				"--f22_slice", "1.2.3.5", "--f22_slice", "1.2.3.6", "--f22_slice", "1.2.3.7",
 				"--f23", "232MB",
-				"--cf1", "244h",
 				"--cf2", "2020-03-18T12:01:33Z",
 				"--cf3-file", fileLICENSEPath,
 				"--cf4", "something[a-z0-9]{2}.+(|lol)",
@@ -446,7 +431,6 @@ Flags:
 				F22:      net.IPv4(0x1, 0x2, 0x3, 0x4),
 				F22Slice: []net.IP{net.IPv4(0x1, 0x2, 0x3, 0x5), net.IPv4(0x1, 0x2, 0x3, 0x6), net.IPv4(0x1, 0x2, 0x3, 0x7)},
 				F23:      units.Base2Bytes(232 * 1024 * 1024),
-				Cf1:      customDuration(244 * time.Hour),
 				Cf2: &flagarize.TimeOrDuration{
 					Time: func() *time.Time { t, _ := time.Parse(time.RFC3339, "2020-03-18T12:01:33Z"); return &t }(),
 				},

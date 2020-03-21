@@ -9,14 +9,13 @@ import (
 	"net"
 	"net/url"
 	"os"
+	"regexp"
 	"testing"
 	"time"
 	"unsafe"
 
 	"github.com/alecthomas/units"
 	"github.com/bwplotka/flagarize"
-	"github.com/bwplotka/flagarize/extflag/pathorcontent"
-	"github.com/bwplotka/flagarize/extflag/timeduration"
 	"github.com/bwplotka/flagarize/testutil"
 	"github.com/pkg/errors"
 	"github.com/prometheus/common/model"
@@ -34,14 +33,15 @@ func (d *customDuration) Flagarize(r flagarize.FlagRegisterer, tag *flagarize.Ta
 	return nil
 }
 
-type nonReceiveFlagarizeType model.Duration
+type nonReceiveFlagarizeType struct{}
 
-func (t nonReceiveFlagarizeType) Flagarize(r flagarize.FlagRegisterer, tag *flagarize.Tag, ptr unsafe.Pointer) error {
-	if tag == nil {
-		return nil
-	}
-	m := (*model.Duration)(ptr)
-	tag.Flag(r).DurationVar((*time.Duration)(m))
+func (t nonReceiveFlagarizeType) Flagarize(flagarize.FlagRegisterer, *flagarize.Tag, unsafe.Pointer) error {
+	return nil
+}
+
+type nonReceiveValueFlagarizeType struct{}
+
+func (t nonReceiveValueFlagarizeType) FlagarizeSetValue(string) error {
 	return nil
 }
 
@@ -135,7 +135,7 @@ func TestFlagarize(t *testing.T) {
 		testutil.NotOk(t, err)
 		testutil.Equals(t, "flagarize: custom Flagarizer for field F: fail", err.Error())
 	})
-	t.Run("custom non receiver pointer flagarizer", func(t *testing.T) {
+	t.Run("custom non receiver pointer Flagarizer", func(t *testing.T) {
 		type wrong struct {
 			F *nonReceiveFlagarizeType `flagarize:"help=help"`
 		}
@@ -145,6 +145,29 @@ func TestFlagarize(t *testing.T) {
 		err := flagarize.Flagarize(app, w)
 		testutil.NotOk(t, err)
 		testutil.Equals(t, "flagarize: flagarize field \"F\" custom Flagarizer is non receiver pointer", err.Error())
+	})
+	t.Run("custom non receiver pointer ValueFlagarizer", func(t *testing.T) {
+		type wrong struct {
+			F *nonReceiveValueFlagarizeType `flagarize:"help=help"`
+		}
+		w := &wrong{}
+
+		app := newTestKingpin(t)
+		err := flagarize.Flagarize(app, w)
+		testutil.NotOk(t, err)
+		testutil.Equals(t, "flagarize: flagarize field \"F\" custom ValueFlagarizer is non receiver pointer", err.Error())
+	})
+	t.Run("duplicate", func(t *testing.T) {
+		type wrong struct {
+			F  string `flagarize:"help=help"`
+			F2 string `flagarize:"name=f|help=help"`
+		}
+		w := &wrong{}
+
+		app := newTestKingpin(t)
+		err := flagarize.Flagarize(app, w)
+		testutil.NotOk(t, err)
+		testutil.Equals(t, "flagarize: flagarize field F2 was already registered", err.Error())
 	})
 
 	type testConfig struct {
@@ -191,9 +214,11 @@ func TestFlagarize(t *testing.T) {
 		F22Slice  []net.IP          `flagarize:"help=19slice"`
 		F23       units.Base2Bytes  `flagarize:"help=20"`
 
-		Cf1 customDuration               `flagarize:"help=21"`
-		Cf2 *timeduration.Value          `flagarize:"help=22"`
-		Cf3 *pathorcontent.PathOrContent `flagarize:"help=23"`
+		Cf1 customDuration            `flagarize:"help=21"`
+		Cf2 *flagarize.TimeOrDuration `flagarize:"help=22"`
+		Cf3 *flagarize.PathOrContent  `flagarize:"help=23"`
+		Cf4 flagarize.Regexp          `flagarize:"help=24"`
+		Cf5 flagarize.AnchoredRegexp  `flagarize:"help=25"`
 	}
 	const expectedUsage = `usage: test [<flags>]
 
@@ -246,6 +271,8 @@ Flags:
   --cf3-file=<file-path>     Path to 23
   --cf3=<content>            Alternative to 'cf3-file' flag (lower priority).
                              Content of 23
+  --cf4=CF4                  24
+  --cf5=CF5                  25
 
 `
 
@@ -323,8 +350,8 @@ Flags:
 				F12_:      "12",
 				F12Slice_: "12Slice",
 				F17:       map[string]string{},
-				Cf2:       &timeduration.Value{},
-				Cf3:       pathorcontent.New("cf3", false, &someString, &someString),
+				Cf2:       &flagarize.TimeOrDuration{},
+				Cf3:       flagarize.NewPathOrContent("cf3", false, &someString, &someString),
 			}},
 		},
 		{
@@ -371,6 +398,8 @@ Flags:
 				"--cf1", "244h",
 				"--cf2", "2020-03-18T12:01:33Z",
 				"--cf3-file", fileLICENSEPath,
+				"--cf4", "something[a-z0-9]{2}.+(|lol)",
+				"--cf5", "something2[a-z0-9]{2}.+(|lol)",
 			},
 			expected: &testParseConfig{testEmbeddedConfig: testEmbeddedConfig{
 				F1:        true,
@@ -418,10 +447,12 @@ Flags:
 				F22Slice: []net.IP{net.IPv4(0x1, 0x2, 0x3, 0x5), net.IPv4(0x1, 0x2, 0x3, 0x6), net.IPv4(0x1, 0x2, 0x3, 0x7)},
 				F23:      units.Base2Bytes(232 * 1024 * 1024),
 				Cf1:      customDuration(244 * time.Hour),
-				Cf2: &timeduration.Value{
+				Cf2: &flagarize.TimeOrDuration{
 					Time: func() *time.Time { t, _ := time.Parse(time.RFC3339, "2020-03-18T12:01:33Z"); return &t }(),
 				},
-				Cf3: pathorcontent.New("cf3", false, &fileLICENSEPath, &someString),
+				Cf3: flagarize.NewPathOrContent("cf3", false, &fileLICENSEPath, &someString),
+				Cf4: flagarize.Regexp{Regexp: func() *regexp.Regexp { return regexp.MustCompile("something[a-z0-9]{2}.+(|lol)") }()},
+				Cf5: flagarize.AnchoredRegexp{Regexp: func() *regexp.Regexp { return regexp.MustCompile("^(?:something2[a-z0-9]{2}.+(|lol))$") }()},
 			}},
 		},
 	} {

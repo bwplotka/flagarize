@@ -6,14 +6,13 @@
 // Copyright (c) The Thanos Authors.
 // Licensed under the Apache License 2.0.
 
-package pathorcontent
+package flagarize
 
 import (
 	"fmt"
 	"io/ioutil"
 	"unsafe"
 
-	"github.com/bwplotka/flagarize"
 	"github.com/pkg/errors"
 )
 
@@ -27,7 +26,7 @@ type PathOrContent struct {
 	content *string
 }
 
-func New(flagName string, required bool, path, content *string) *PathOrContent {
+func NewPathOrContent(flagName string, required bool, path, content *string) *PathOrContent {
 	return &PathOrContent{
 		flagName: flagName,
 		required: required,
@@ -37,7 +36,7 @@ func New(flagName string, required bool, path, content *string) *PathOrContent {
 }
 
 // Flagarize registers PathOrContent flag.
-func (p *PathOrContent) Flagarize(r flagarize.FlagRegisterer, tag *flagarize.Tag, _ unsafe.Pointer) error {
+func (p *PathOrContent) Flagarize(r FlagRegisterer, tag *Tag, _ unsafe.Pointer) error {
 	if tag == nil {
 		return nil
 	}

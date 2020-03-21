@@ -46,7 +46,7 @@ func newTestKingpin(t *testing.T) *kingpin.Application {
 	return app
 }
 
-func TestFlagarize(t *testing.T) {
+func TestFlagarize_Errors(t *testing.T) {
 	t.Run("flagarize on private field", func(t *testing.T) {
 		type wrong struct {
 			f map[string]int `flagarize:"help=help"`
@@ -158,7 +158,9 @@ func TestFlagarize(t *testing.T) {
 		testutil.NotOk(t, err)
 		testutil.Equals(t, "flagarize: flagarize field F2 was already registered", err.Error())
 	})
+}
 
+func TestFlagarize_OK(t *testing.T) {
 	type testConfig struct {
 		Ignore                int
 		F1                    bool     `flagarize:"help=1"`

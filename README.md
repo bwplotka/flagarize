@@ -16,7 +16,40 @@ Flagarize your Go struct to initialize your even complex CLI config struct from 
 * Go 1.3+
 * `gopkg.in/alecthomas/kingpin.v2`
 
+
 ## Usage
+
+For each field of the configuration struct that you want to register as a flag, add ``flagarize:"<key=value,>"`` struct tag.
+
+### Flagarize tags
+
+Flagarize struct tag expected value to be map where key=values are separated by `|` (can be configured via `WithElemSep` function.)
+
+**Available keys:**
+
+* `name`: Name of the flag. If empty field name will be used and parsed to different case (e.g `FooBar` field will be `foo-bar`)
+* `help`: Usage description for the flag. If empty, value from string `<FieldName>FlagarizeHelp` field in the same struct will be used.
+* `hidden`: Optional. if `true` flag will be hidden.
+* `required`: Optional. if `true` flag will be required.
+* `default`: Optional. Value will be used as a value if the flag is not specified. Otherwise default value for type will be used.
+* `envvar`: Optional. Name of environment variable if needed next to the flag.
+* `short`: Optional. Short single character for a flag name alternative.
+* `placeholder` Optional. Flag placeholder for expected type.
+
+Short tag example:
+
+```go
+type config struct {
+   Field1 string `flagarize:"name=case9|help=help|hidden=true|required=true|default=some|envvar=LOL|short=z|placeholder=<something2>"`
+}
+```
+
+### Supported types
+
+Without extensions flagarize supports all kingpin supported types plus few more. For current supported types it's best to
+see `TestFlagarize_OK` unit test [here](flagarize_ext_test.go).
+
+### Example
 
 See below example for usage:
 

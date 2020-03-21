@@ -44,7 +44,7 @@ type ValueFlagarizer interface {
 	// It is expected from this method to parse the string to the underlying type.
 	// This method has to be a pointer receiver for the method to take effect.
 	// Flagarize will return error otherwise.
-	FlagarizeSetValue(s string) error
+	Set(s string) error
 }
 
 // Flagarizer is more advanced way to extend flagarize to parse a type. It allows to register
@@ -354,10 +354,6 @@ func (f *flagarizeValue) String() string {
 	return f.def
 }
 
-func (f *flagarizeValue) Set(v string) error {
-	return f.FlagarizeSetValue(v)
-}
-
 func invokeCustomValueFlagarizer(r KingpinRegistry, vf ValueFlagarizer, tag *Tag, fieldValue reflect.Value, name string) error {
 	if fieldValue.Kind() != reflect.Ptr {
 		fieldValue = fieldValue.Addr()
@@ -367,7 +363,7 @@ func invokeCustomValueFlagarizer(r KingpinRegistry, vf ValueFlagarizer, tag *Tag
 		fieldValue.Set(v)
 	}
 
-	if fieldValue.Elem().MethodByName("FlagarizeSetValue").IsValid() {
+	if fieldValue.Elem().MethodByName("Set").IsValid() {
 		return errors.Errorf("flagarize field %q custom ValueFlagarizer is non receiver pointer", name)
 	}
 

@@ -47,8 +47,8 @@ type TimeOrDuration struct {
 	Dur  *time.Duration
 }
 
-// FlagarizeSetValue converts string to TimeOrDuration.
-func (tdv *TimeOrDuration) FlagarizeSetValue(s string) error {
+// Set converts string to TimeOrDuration.
+func (tdv *TimeOrDuration) Set(s string) error {
 	var merr multiError
 	t, err := time.Parse(time.RFC3339, s)
 	if err == nil {

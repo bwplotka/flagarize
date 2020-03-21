@@ -29,7 +29,7 @@ func (t nonReceiveFlagarizeType) Flagarize(flagarize.FlagRegisterer, *flagarize.
 
 type nonReceiveValueFlagarizeType struct{}
 
-func (t nonReceiveValueFlagarizeType) FlagarizeSetValue(string) error {
+func (t nonReceiveValueFlagarizeType) Set(string) error {
 	return nil
 }
 

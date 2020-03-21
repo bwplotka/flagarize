@@ -19,9 +19,9 @@ import (
 
 func TestTimeOrDuration(t *testing.T) {
 	minTime := &flagarize.TimeOrDuration{}
-	testutil.Ok(t, minTime.FlagarizeSetValue("10s"))
+	testutil.Ok(t, minTime.Set("10s"))
 	maxTime := &flagarize.TimeOrDuration{}
-	testutil.Ok(t, maxTime.FlagarizeSetValue("9999-12-31T23:59:59Z"))
+	testutil.Ok(t, maxTime.Set("9999-12-31T23:59:59Z"))
 
 	testutil.Equals(t, "10s", minTime.String())
 	testutil.Equals(t, "9999-12-31 23:59:59 +0000 UTC", maxTime.String())

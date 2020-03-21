@@ -462,7 +462,7 @@ Flags:
 }
 
 type ComponentAOptions struct {
-	Field1 string
+	Field1 []string `flagarize:"name=a.flag1|help=..."`
 }
 
 func ExampleFlagarize() {
@@ -471,12 +471,12 @@ func ExampleFlagarize() {
 
 	// Define you own config.
 	type ConfigForCLI struct {
-		Field1 string                   `flagarize:"name=config.file|help=Prometheus configuration file path.|default=prometheus.yml"`
-		Field2 []string                 `flagarize:"name=web.external-url|help=The URL under which Prometheus is externally reachable (for example, if Prometheus is served via a reverse proxy). Used for generating relative and absolute links back to Prometheus itself. If the URL has a path portion, it will be used to prefix all HTTP endpoints served by Prometheus. If omitted, relevant URL components will be derived automatically.|placeholder=<URL>"`
-		Field3 int                      `flagarize:"name=storage.tsdb.path|help=Base path for metrics storage.|default=data/"`
-		Field4 flagarize.TimeOrDuration `flagarize:"name=storage.remote.flush-deadline|help=How long to wait flushing sample on shutdown or config reload.|default=1m|placeholder=<duration>"`
+		Field1 string                   `flagarize:"name=flag1|help=...|default=something"`
+		Field2 *url.URL                 `flagarize:"name=flag2|help=...|placeholder=<URL>"`
+		Field3 int                      `flagarize:"name=flag3|help=...|default=2144"`
+		Field4 flagarize.TimeOrDuration `flagarize:"name=flag4|help=...|default=1m|placeholder=<time or duration>"`
 
-		NotFromFlags int `flagarize:"name=query.max-concurrency|help=Maximum number of queries executed concurrently.|default=20"`
+		NotFromFlags int
 
 		ComponentA ComponentAOptions
 	}

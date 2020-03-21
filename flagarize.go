@@ -411,11 +411,11 @@ func parseHelpVars(structVal reflect.Value) map[string]*string {
 	for i := 0; i < structVal.NumField(); i++ {
 		name := structVal.Type().Field(i).Name
 
-		if !strings.HasSuffix(name, "_") || structVal.Field(i).Kind() != reflect.String || structVal.Field(i).String() == "" {
+		if !strings.HasSuffix(name, "FlagarizeHelp") || structVal.Field(i).Kind() != reflect.String || structVal.Field(i).String() == "" {
 			continue
 		}
 		v := structVal.Field(i).String()
-		helpVars[name[:len(name)-1]] = &v
+		helpVars[name[:len(name)-len("FlagarizeHelp")]] = &v
 	}
 	return helpVars
 }

@@ -171,48 +171,48 @@ func TestFlagarize(t *testing.T) {
 	})
 
 	type testConfig struct {
-		Ignore    int
-		F1        bool     `flagarize:"help=1"`
-		F1Slice   []bool   `flagarize:"help=1slice"`
-		F2        string   `flagarize:"help=2"`
-		F2Slice   []string `flagarize:"help=2slice"`
-		F4        int      `flagarize:"help=3"`
-		F4Slice   []int    `flagarize:"help=3slice"`
-		F5        int8     `flagarize:"help=4"`
-		F5Slice   []int8   `flagarize:"help=4slice"`
-		F6        int16    `flagarize:"help=5"`
-		F6Slice   []int16  `flagarize:"help=5slice"`
-		F7        int32    `flagarize:"help=6"`
-		F7Slice   []int32  `flagarize:"help=6slice"`
-		F8        int64    `flagarize:"help=7"`
-		F8Slice   []int64  `flagarize:"help=7slice"`
-		F9        uint     `flagarize:"help=8"`
-		F9Slice   []uint   `flagarize:"help=8slice"`
-		F10       uint8    `flagarize:"help=9"`
-		F10Slice  []uint8  `flagarize:"help=9slice"`
-		F11       uint16   `flagarize:"help=10"`
-		F11Slice  []uint16 `flagarize:"help=10slice"`
-		F12       uint32   `flagarize:""`
-		F12_      string
-		F12Slice  []uint32 `flagarize:""`
-		F12Slice_ string
-		F13       uint64            `flagarize:"help=11"`
-		F13Slice  []uint64          `flagarize:"help=11slice"`
-		F14       float32           `flagarize:"help=12"`
-		F14Slice  []float32         `flagarize:"help=12slice"`
-		F15       float64           `flagarize:"help=13"`
-		F15Slice  []float64         `flagarize:"help=13slice"`
-		F17       map[string]string `flagarize:"help=14"`
-		F18       *net.TCPAddr      `flagarize:"help=15"`
-		F18Slice  []*net.TCPAddr    `flagarize:"help=15slice"`
-		F19       *url.URL          `flagarize:"help=16"`
-		F19Slice  []*url.URL        `flagarize:"help=16slice"`
-		F20       *os.File          `flagarize:"help=17"`
-		F21       time.Duration     `flagarize:"help=18"`
-		F21Slice  []time.Duration   `flagarize:"help=18slice"`
-		F22       net.IP            `flagarize:"help=19"`
-		F22Slice  []net.IP          `flagarize:"help=19slice"`
-		F23       units.Base2Bytes  `flagarize:"help=20"`
+		Ignore                int
+		F1                    bool     `flagarize:"help=1"`
+		F1Slice               []bool   `flagarize:"help=1slice"`
+		F2                    string   `flagarize:"help=2"`
+		F2Slice               []string `flagarize:"help=2slice"`
+		F4                    int      `flagarize:"help=3"`
+		F4Slice               []int    `flagarize:"help=3slice"`
+		F5                    int8     `flagarize:"help=4"`
+		F5Slice               []int8   `flagarize:"help=4slice"`
+		F6                    int16    `flagarize:"help=5"`
+		F6Slice               []int16  `flagarize:"help=5slice"`
+		F7                    int32    `flagarize:"help=6"`
+		F7Slice               []int32  `flagarize:"help=6slice"`
+		F8                    int64    `flagarize:"help=7"`
+		F8Slice               []int64  `flagarize:"help=7slice"`
+		F9                    uint     `flagarize:"help=8"`
+		F9Slice               []uint   `flagarize:"help=8slice"`
+		F10                   uint8    `flagarize:"help=9"`
+		F10Slice              []uint8  `flagarize:"help=9slice"`
+		F11                   uint16   `flagarize:"help=10"`
+		F11Slice              []uint16 `flagarize:"help=10slice"`
+		F12                   uint32   `flagarize:""`
+		F12FlagarizeHelp      string
+		F12Slice              []uint32 `flagarize:""`
+		F12SliceFlagarizeHelp string
+		F13                   uint64            `flagarize:"help=11"`
+		F13Slice              []uint64          `flagarize:"help=11slice"`
+		F14                   float32           `flagarize:"help=12"`
+		F14Slice              []float32         `flagarize:"help=12slice"`
+		F15                   float64           `flagarize:"help=13"`
+		F15Slice              []float64         `flagarize:"help=13slice"`
+		F17                   map[string]string `flagarize:"help=14"`
+		F18                   *net.TCPAddr      `flagarize:"help=15"`
+		F18Slice              []*net.TCPAddr    `flagarize:"help=15slice"`
+		F19                   *url.URL          `flagarize:"help=16"`
+		F19Slice              []*url.URL        `flagarize:"help=16slice"`
+		F20                   *os.File          `flagarize:"help=17"`
+		F21                   time.Duration     `flagarize:"help=18"`
+		F21Slice              []time.Duration   `flagarize:"help=18slice"`
+		F22                   net.IP            `flagarize:"help=19"`
+		F22Slice              []net.IP          `flagarize:"help=19slice"`
+		F23                   units.Base2Bytes  `flagarize:"help=20"`
 
 		Cf1 customDuration            `flagarize:"help=21"`
 		Cf2 *flagarize.TimeOrDuration `flagarize:"help=22"`
@@ -294,7 +294,7 @@ Flags:
 		testutil.Equals(t, "flagarize: object cannot be nil", err.Error())
 	})
 	t.Run("non pointer struct parsed", func(t *testing.T) {
-		c := testParseConfig{testEmbeddedConfig: testEmbeddedConfig{F12_: "12", F12Slice_: "12Slice"}, config2: testConfig{}, Configs: nil}
+		c := testParseConfig{testEmbeddedConfig: testEmbeddedConfig{F12FlagarizeHelp: "12", F12SliceFlagarizeHelp: "12Slice"}, config2: testConfig{}, Configs: nil}
 
 		app := newTestKingpin(t)
 		err := flagarize.Flagarize(app, c)
@@ -303,7 +303,7 @@ Flags:
 	})
 
 	t.Run("expected help message", func(t *testing.T) {
-		c := &testParseConfig{testEmbeddedConfig: testEmbeddedConfig{F12_: "12", F12Slice_: "12Slice"}}
+		c := &testParseConfig{testEmbeddedConfig: testEmbeddedConfig{F12FlagarizeHelp: "12", F12SliceFlagarizeHelp: "12Slice"}}
 		app := newTestKingpin(t)
 		b := bytes.Buffer{}
 		app.UsageWriter(&b)
@@ -322,7 +322,7 @@ Flags:
 		type testParseConfig2 struct {
 			Config1 testConfig
 		}
-		c := &testParseConfig2{Config1: testConfig{F12_: "12", F12Slice_: "12Slice"}}
+		c := &testParseConfig2{Config1: testConfig{F12FlagarizeHelp: "12", F12SliceFlagarizeHelp: "12Slice"}}
 
 		app := newTestKingpin(t)
 		b := bytes.Buffer{}
@@ -347,11 +347,11 @@ Flags:
 		{
 			input: []string{},
 			expected: &testParseConfig{testEmbeddedConfig: testEmbeddedConfig{
-				F12_:      "12",
-				F12Slice_: "12Slice",
-				F17:       map[string]string{},
-				Cf2:       &flagarize.TimeOrDuration{},
-				Cf3:       flagarize.NewPathOrContent("cf3", false, &someString, &someString),
+				F12FlagarizeHelp:      "12",
+				F12SliceFlagarizeHelp: "12Slice",
+				F17:                   map[string]string{},
+				Cf2:                   &flagarize.TimeOrDuration{},
+				Cf3:                   flagarize.NewPathOrContent("cf3", false, &someString, &someString),
 			}},
 		},
 		{
@@ -402,41 +402,41 @@ Flags:
 				"--cf5", "something2[a-z0-9]{2}.+(|lol)",
 			},
 			expected: &testParseConfig{testEmbeddedConfig: testEmbeddedConfig{
-				F1:        true,
-				F1Slice:   []bool{true, false, true},
-				F2:        "testString",
-				F2Slice:   []string{"a", "b"},
-				F4:        -1234,
-				F4Slice:   []int{-1, -424, 3},
-				F5:        -122,
-				F5Slice:   []int8{-12, -42, 32},
-				F6:        -12343,
-				F6Slice:   []int16{-13, -4243, 33},
-				F7:        -12344,
-				F7Slice:   []int32{-14, -4244, 34},
-				F8:        -12345,
-				F8Slice:   []int64{-15, -4245, 35},
-				F9:        1234,
-				F9Slice:   []uint{1, 424, 3},
-				F10:       122,
-				F10Slice:  []uint8{12, 42, 32},
-				F11:       12343,
-				F11Slice:  []uint16{13, 4243, 33},
-				F12:       12344,
-				F12_:      "12",
-				F12Slice:  []uint32{14, 4244, 34},
-				F12Slice_: "12Slice",
-				F13:       12345,
-				F13Slice:  []uint64{15, 4245, 35},
-				F14:       12.4,
-				F14Slice:  []float32{-2.1, 1.12345, 0},
-				F15:       -12.43265,
-				F15Slice:  []float64{2.1, -1.12345, 0},
-				F17:       map[string]string{"a": "b"},
-				F18:       &net.TCPAddr{IP: net.IPv4(0x1, 0x2, 0x3, 0x4), Port: 34},
-				F18Slice:  []*net.TCPAddr{{IP: net.IPv4(0x1, 0x2, 0x3, 0x5), Port: 35}, {IP: net.IPv4(0x1, 0x2, 0x3, 0x6), Port: 36}, {IP: net.IPv4(0x1, 0x2, 0x3, 0x7), Port: 37}},
-				F19:       &url.URL{Host: "example.com", Path: "/path", Scheme: "http"},
-				F19Slice:  []*url.URL{{Host: "example.com30", Path: "/path", Scheme: "http"}, {Host: "example.com10", Path: "/path2", Scheme: "http"}, {Host: "example.com20", Path: "/path3", Scheme: "http"}},
+				F1:                    true,
+				F1Slice:               []bool{true, false, true},
+				F2:                    "testString",
+				F2Slice:               []string{"a", "b"},
+				F4:                    -1234,
+				F4Slice:               []int{-1, -424, 3},
+				F5:                    -122,
+				F5Slice:               []int8{-12, -42, 32},
+				F6:                    -12343,
+				F6Slice:               []int16{-13, -4243, 33},
+				F7:                    -12344,
+				F7Slice:               []int32{-14, -4244, 34},
+				F8:                    -12345,
+				F8Slice:               []int64{-15, -4245, 35},
+				F9:                    1234,
+				F9Slice:               []uint{1, 424, 3},
+				F10:                   122,
+				F10Slice:              []uint8{12, 42, 32},
+				F11:                   12343,
+				F11Slice:              []uint16{13, 4243, 33},
+				F12:                   12344,
+				F12FlagarizeHelp:      "12",
+				F12Slice:              []uint32{14, 4244, 34},
+				F12SliceFlagarizeHelp: "12Slice",
+				F13:                   12345,
+				F13Slice:              []uint64{15, 4245, 35},
+				F14:                   12.4,
+				F14Slice:              []float32{-2.1, 1.12345, 0},
+				F15:                   -12.43265,
+				F15Slice:              []float64{2.1, -1.12345, 0},
+				F17:                   map[string]string{"a": "b"},
+				F18:                   &net.TCPAddr{IP: net.IPv4(0x1, 0x2, 0x3, 0x4), Port: 34},
+				F18Slice:              []*net.TCPAddr{{IP: net.IPv4(0x1, 0x2, 0x3, 0x5), Port: 35}, {IP: net.IPv4(0x1, 0x2, 0x3, 0x6), Port: 36}, {IP: net.IPv4(0x1, 0x2, 0x3, 0x7), Port: 37}},
+				F19:                   &url.URL{Host: "example.com", Path: "/path", Scheme: "http"},
+				F19Slice:              []*url.URL{{Host: "example.com30", Path: "/path", Scheme: "http"}, {Host: "example.com10", Path: "/path2", Scheme: "http"}, {Host: "example.com20", Path: "/path3", Scheme: "http"}},
 				F20: func() *os.File {
 					f, _ := os.OpenFile(fileLICENSEPath, os.O_RDONLY, 0)
 					return f
@@ -457,7 +457,7 @@ Flags:
 		},
 	} {
 		t.Run(fmt.Sprintf("%v", tcase.input), func(t *testing.T) {
-			c := &testParseConfig{testEmbeddedConfig: testEmbeddedConfig{F12_: "12", F12Slice_: "12Slice"}}
+			c := &testParseConfig{testEmbeddedConfig: testEmbeddedConfig{F12FlagarizeHelp: "12", F12SliceFlagarizeHelp: "12Slice"}}
 
 			app := newTestKingpin(t)
 			testutil.Ok(t, flagarize.Flagarize(app, c, flagarize.WithElemSep(",")))

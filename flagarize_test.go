@@ -15,118 +15,118 @@ import (
 func TestParseTag(t *testing.T) {
 	t.Run("default separator", func(t *testing.T) {
 		testParseTag(t, struct {
-			noTag         bool
-			wrongNoHelp1  bool `flagarize:""`
-			wrongFormat1  bool `flagarize:"wrong"`
-			wrongFormat2  bool `flagarize:"|"`
-			wrongFormat3  bool `flagarize:"help=|"`
-			wrongNoHelp3  bool `flagarize:"help="`
-			noName        bool `flagarize:"help=help"`
-			noName2       bool `flagarize:"name=|help=help"`
-			simple        bool `flagarize:"name=case1|help=help"`
-			simple_       string
-			complexHelp   bool `flagarize:"name=case2a"`
-			complexHelp_  string
-			complexHelp1  bool `flagarize:"name=case2b|help="`
-			complexHelp1_ string
-			wrongFormat4  bool `flagarize:"name=...|help=help|nonexistingfield="`
-			wrongFormat5  bool `flagarize:"name=...|help=help|wrongformat"`
-			hidden        bool `flagarize:"name=case3|help=help|hidden=true"`
-			required      bool `flagarize:"name=case4|help=help|required=true"`
-			wrongNoHelp6  bool `flagarize:"name=...|hidden=true|required=true"`
-			defaultValue  bool `flagarize:"name=case5|help=help|default=some default value ms 2213"`
-			envVarWrong   bool `flagarize:"name=case6|help=help|envvar=lowerCASEnotallowed"`
-			envVar        bool `flagarize:"name=case6|help=help|envvar=SOME_ENVVAR"`
-			shortWrong    bool `flagarize:"name=...|help=help|short=tooLong"`
-			short         bool `flagarize:"name=case7|help=help|short=l"`
-			placeHolder   bool `flagarize:"name=case8|help=help|placeholder=<something>"`
-			all           bool `flagarize:"name=case9|help=help|hidden=true|required=true|default=some|envvar=LOL|short=z|placeholder=<something2>"`
+			noTag                     bool
+			wrongNoHelp1              bool `flagarize:""`
+			wrongFormat1              bool `flagarize:"wrong"`
+			wrongFormat2              bool `flagarize:"|"`
+			wrongFormat3              bool `flagarize:"help=|"`
+			wrongNoHelp3              bool `flagarize:"help="`
+			noName                    bool `flagarize:"help=help"`
+			noName2                   bool `flagarize:"name=|help=help"`
+			simple                    bool `flagarize:"name=case1|help=help"`
+			simpleFlagarizeHelp       string
+			complexHelp               bool `flagarize:"name=case2a"`
+			complexHelpFlagarizeHelp  string
+			complexHelp1              bool `flagarize:"name=case2b|help="`
+			complexHelp1FlagarizeHelp string
+			wrongFormat4              bool `flagarize:"name=...|help=help|nonexistingfield="`
+			wrongFormat5              bool `flagarize:"name=...|help=help|wrongformat"`
+			hidden                    bool `flagarize:"name=case3|help=help|hidden=true"`
+			required                  bool `flagarize:"name=case4|help=help|required=true"`
+			wrongNoHelp6              bool `flagarize:"name=...|hidden=true|required=true"`
+			defaultValue              bool `flagarize:"name=case5|help=help|default=some default value ms 2213"`
+			envVarWrong               bool `flagarize:"name=case6|help=help|envvar=lowerCASEnotallowed"`
+			envVar                    bool `flagarize:"name=case6|help=help|envvar=SOME_ENVVAR"`
+			shortWrong                bool `flagarize:"name=...|help=help|short=tooLong"`
+			short                     bool `flagarize:"name=case7|help=help|short=l"`
+			placeHolder               bool `flagarize:"name=case8|help=help|placeholder=<something>"`
+			all                       bool `flagarize:"name=case9|help=help|hidden=true|required=true|default=some|envvar=LOL|short=z|placeholder=<something2>"`
 		}{
 			// Most of those fields have default value. This could be skipped but is needed for (unused) lint.
-			noTag:         false,
-			wrongNoHelp1:  false,
-			wrongFormat1:  false,
-			wrongFormat2:  false,
-			wrongFormat3:  false,
-			wrongNoHelp3:  false,
-			noName:        false,
-			noName2:       false,
-			simple:        false,
-			simple_:       "yolo; this help should not be used, it was already specified.",
-			complexHelp:   false,
-			complexHelp_:  fmt.Sprintf("Some runtime evaluated help in %s.", flagTagName),
-			complexHelp1:  false,
-			complexHelp1_: fmt.Sprintf("Some runtime evaluated help2 in %s.", flagTagName),
-			wrongFormat4:  false,
-			wrongFormat5:  false,
-			hidden:        false,
-			required:      false,
-			wrongNoHelp6:  false,
-			defaultValue:  false,
-			envVarWrong:   false,
-			envVar:        false,
-			shortWrong:    false,
-			short:         false,
-			placeHolder:   false,
-			all:           false,
+			noTag:                     false,
+			wrongNoHelp1:              false,
+			wrongFormat1:              false,
+			wrongFormat2:              false,
+			wrongFormat3:              false,
+			wrongNoHelp3:              false,
+			noName:                    false,
+			noName2:                   false,
+			simple:                    false,
+			simpleFlagarizeHelp:       "yolo; this help should not be used, it was already specified.",
+			complexHelp:               false,
+			complexHelpFlagarizeHelp:  fmt.Sprintf("Some runtime evaluated help in %s.", flagTagName),
+			complexHelp1:              false,
+			complexHelp1FlagarizeHelp: fmt.Sprintf("Some runtime evaluated help2 in %s.", flagTagName),
+			wrongFormat4:              false,
+			wrongFormat5:              false,
+			hidden:                    false,
+			required:                  false,
+			wrongNoHelp6:              false,
+			defaultValue:              false,
+			envVarWrong:               false,
+			envVar:                    false,
+			shortWrong:                false,
+			short:                     false,
+			placeHolder:               false,
+			all:                       false,
 		}, "|")
 	})
 	t.Run("comma separator", func(t *testing.T) {
 		testParseTag(t, struct {
-			noTag         bool
-			wrongNoHelp1  bool `flagarize:""`
-			wrongFormat1  bool `flagarize:"wrong"`
-			wrongFormat2  bool `flagarize:","`
-			wrongFormat3  bool `flagarize:"help=,"`
-			wrongNoHelp3  bool `flagarize:"help="`
-			noName        bool `flagarize:"help=help"`
-			noName2       bool `flagarize:"name=,help=help"`
-			simple        bool `flagarize:"name=case1,help=help"`
-			simple_       string
-			complexHelp   bool `flagarize:"name=case2a"`
-			complexHelp_  string
-			complexHelp1  bool `flagarize:"name=case2b,help="`
-			complexHelp1_ string
-			wrongFormat4  bool `flagarize:"name=...,help=help,nonexistingfield="`
-			wrongFormat5  bool `flagarize:"name=...,help=help,wrongformat"`
-			hidden        bool `flagarize:"name=case3,help=help,hidden=true"`
-			required      bool `flagarize:"name=case4,help=help,required=true"`
-			wrongNoHelp6  bool `flagarize:"name=...,hidden=true,required=true"`
-			defaultValue  bool `flagarize:"name=case5,help=help,default=some default value ms 2213"`
-			envVarWrong   bool `flagarize:"name=case6,help=help,envvar=lowerCASEnotallowed"`
-			envVar        bool `flagarize:"name=case6,help=help,envvar=SOME_ENVVAR"`
-			shortWrong    bool `flagarize:"name=...,help=help,short=tooLong"`
-			short         bool `flagarize:"name=case7,help=help,short=l"`
-			placeHolder   bool `flagarize:"name=case8,help=help,placeholder=<something>"`
-			all           bool `flagarize:"name=case9,help=help,hidden=true,required=true,default=some,envvar=LOL,short=z,placeholder=<something2>"`
+			noTag                     bool
+			wrongNoHelp1              bool `flagarize:""`
+			wrongFormat1              bool `flagarize:"wrong"`
+			wrongFormat2              bool `flagarize:","`
+			wrongFormat3              bool `flagarize:"help=,"`
+			wrongNoHelp3              bool `flagarize:"help="`
+			noName                    bool `flagarize:"help=help"`
+			noName2                   bool `flagarize:"name=,help=help"`
+			simple                    bool `flagarize:"name=case1,help=help"`
+			simpleFlagarizeHelp       string
+			complexHelp               bool `flagarize:"name=case2a"`
+			complexHelpFlagarizeHelp  string
+			complexHelp1              bool `flagarize:"name=case2b,help="`
+			complexHelp1FlagarizeHelp string
+			wrongFormat4              bool `flagarize:"name=...,help=help,nonexistingfield="`
+			wrongFormat5              bool `flagarize:"name=...,help=help,wrongformat"`
+			hidden                    bool `flagarize:"name=case3,help=help,hidden=true"`
+			required                  bool `flagarize:"name=case4,help=help,required=true"`
+			wrongNoHelp6              bool `flagarize:"name=...,hidden=true,required=true"`
+			defaultValue              bool `flagarize:"name=case5,help=help,default=some default value ms 2213"`
+			envVarWrong               bool `flagarize:"name=case6,help=help,envvar=lowerCASEnotallowed"`
+			envVar                    bool `flagarize:"name=case6,help=help,envvar=SOME_ENVVAR"`
+			shortWrong                bool `flagarize:"name=...,help=help,short=tooLong"`
+			short                     bool `flagarize:"name=case7,help=help,short=l"`
+			placeHolder               bool `flagarize:"name=case8,help=help,placeholder=<something>"`
+			all                       bool `flagarize:"name=case9,help=help,hidden=true,required=true,default=some,envvar=LOL,short=z,placeholder=<something2>"`
 		}{
 			// Most of those fields have default value. This could be skipped but is needed for (unused) lint.
-			noTag:         false,
-			wrongNoHelp1:  false,
-			wrongFormat1:  false,
-			wrongFormat2:  false,
-			wrongFormat3:  false,
-			wrongNoHelp3:  false,
-			noName:        false,
-			noName2:       false,
-			simple:        false,
-			simple_:       "yolo; this help should not be used, it was already specified.",
-			complexHelp:   false,
-			complexHelp_:  fmt.Sprintf("Some runtime evaluated help in %s.", flagTagName),
-			complexHelp1:  false,
-			complexHelp1_: fmt.Sprintf("Some runtime evaluated help2 in %s.", flagTagName),
-			wrongFormat4:  false,
-			wrongFormat5:  false,
-			hidden:        false,
-			required:      false,
-			wrongNoHelp6:  false,
-			defaultValue:  false,
-			envVarWrong:   false,
-			envVar:        false,
-			shortWrong:    false,
-			short:         false,
-			placeHolder:   false,
-			all:           false,
+			noTag:                     false,
+			wrongNoHelp1:              false,
+			wrongFormat1:              false,
+			wrongFormat2:              false,
+			wrongFormat3:              false,
+			wrongNoHelp3:              false,
+			noName:                    false,
+			noName2:                   false,
+			simple:                    false,
+			simpleFlagarizeHelp:       "yolo; this help should not be used, it was already specified.",
+			complexHelp:               false,
+			complexHelpFlagarizeHelp:  fmt.Sprintf("Some runtime evaluated help in %s.", flagTagName),
+			complexHelp1:              false,
+			complexHelp1FlagarizeHelp: fmt.Sprintf("Some runtime evaluated help2 in %s.", flagTagName),
+			wrongFormat4:              false,
+			wrongFormat5:              false,
+			hidden:                    false,
+			required:                  false,
+			wrongNoHelp6:              false,
+			defaultValue:              false,
+			envVarWrong:               false,
+			envVar:                    false,
+			shortWrong:                false,
+			short:                     false,
+			placeHolder:               false,
+			all:                       false,
 		}, ",")
 	})
 }

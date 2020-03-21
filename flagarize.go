@@ -34,29 +34,40 @@ const (
 
 var supportedStuctTagKeys = []string{nameStructTagKey, helpStructTagKey, hiddenStructTagKey, requiredStructTagKey, defaultStructTagKey, envvarStructTagKey, shortStructTagKey, placeholderStructTagKey}
 
-// Flagarizer register a flag from given struct.
+// ValueFlagarizer is the simplest way to extend flagarize to parse your custom type.
+// If any field has `flagarize:` struct tag and it implements the ValueFlagarizer, this will be
+// used by kingping to parse the flag value.
+//
+// For an example see: `./timeduration.go` or `./regexp.go`
+type ValueFlagarizer interface {
+	// FlagarizeSetValue is invoked on kinpgin.Parse with the flag value passed as string.
+	// It is expected from this method to parse the string to the underlying type.
+	// This method has to be a pointer receiver for the method to take effect.
+	// Flagarize will return error otherwise.
+	FlagarizeSetValue(s string) error
+}
+
+// Flagarizer is more advanced way to extend flagarize to parse a type. It allows to register
+// more than one flag or register them in a custom way. It's ok for a method to register nothing.
+// If any field implements `Flagarizer` this method will be invoked even if field does not
+// have `flagarize:` struct tag.
+//
+// If the field implements both ValueFlagarizer and Flagarizer, only Flagarizer will be used.
+//
+// For an example usagesee: `./pathorcontent.go`
 type Flagarizer interface {
-	// Flagarize is invoked for all fields, even those without flagarize struct tag.
-	// If field type does not implement custom Flagarizer default one will be used.
-	// Note: ptr can hold empty, not initialized type. Alloc it first to use it.
+	// Flagarize is invoked on Flagarize. If field type does not implement custom Flagarizer
+	// default one will be used.
+	// Tag argument is nil if no `flagarize` struct tag was specified. Otherwise it has parsed
+	//`flagarize` struct tag.
+	// The ptr argument is an address of the already allocated type, that can be used
+	// by FlagRegisterer kingping *Var methods.
 	Flagarize(r FlagRegisterer, tag *Tag, ptr unsafe.Pointer) error
 }
 
 // FlagRegisterer allows registering a flag.
 type FlagRegisterer interface {
 	Flag(name, help string) *kingpin.FlagClause
-}
-
-type dedupFlagRegisterer struct {
-	KingpinRegistry
-	duplicate string
-}
-
-func (d *dedupFlagRegisterer) Flag(name, help string) *kingpin.FlagClause {
-	if d.GetFlag(name) != nil {
-		d.duplicate = name
-	}
-	return d.KingpinRegistry.Flag(name, help)
 }
 
 // KingpinRegistry allows registering a flag, getting a flag and registering a command.
@@ -120,6 +131,18 @@ func Flagarize(r KingpinRegistry, s interface{}, o ...OptFunc) error {
 	}
 }
 
+type dedupFlagRegisterer struct {
+	KingpinRegistry
+	duplicate string
+}
+
+func (d *dedupFlagRegisterer) Flag(name, help string) *kingpin.FlagClause {
+	if d.GetFlag(name) != nil {
+		d.duplicate = name
+	}
+	return d.KingpinRegistry.Flag(name, help)
+}
+
 func parseStruct(r KingpinRegistry, value reflect.Value, o opts) error {
 	helpVars := parseHelpVars(value)
 	for i := 0; i < value.NumField(); i++ {
@@ -153,31 +176,14 @@ func parseStruct(r KingpinRegistry, value reflect.Value, o opts) error {
 		}
 
 		// Favor custom Flagarizers if specified.
-		if f, ok := fieldValue.Interface().(Flagarizer); ok {
-			if fieldValue.Kind() == reflect.Ptr {
-				if fieldValue.IsNil() {
-					fieldValue.Set(reflect.New(fieldValue.Type().Elem()))
-					// Do fieldValue.Interface() once more as after alloc the copied value is not changed.
-					f = fieldValue.Interface().(Flagarizer)
-				}
-			}
-
-			if err := invokeCustomFlagarizer(r, f, tag, fieldValue, field); err != nil {
-				return err
-			}
-			continue
+		d := &dedupFlagRegisterer{KingpinRegistry: r}
+		ok, err := invokeFlagarizersIfImplements(d, tag, fieldValue, field.Name)
+		if err != nil {
+			return err
 		}
-
-		if f, ok := fieldValue.Addr().Interface().(Flagarizer); ok {
-			if fieldValue.Kind() == reflect.Ptr {
-				if fieldValue.IsNil() {
-					fieldValue.Set(reflect.New(fieldValue.Type().Elem()))
-					// Do fieldValue.Interface() once more as after alloc the copied value is not changed.
-					f = fieldValue.Addr().Interface().(Flagarizer)
-				}
-			}
-			if err := invokeCustomFlagarizer(r, f, tag, fieldValue, field); err != nil {
-				return err
+		if ok {
+			if d.duplicate != "" {
+				return errors.Errorf("flagarize field %s was already registered", d.duplicate)
 			}
 			continue
 		}
@@ -274,7 +280,53 @@ func parseStruct(r KingpinRegistry, value reflect.Value, o opts) error {
 	return nil
 }
 
-func invokeCustomFlagarizer(r KingpinRegistry, f Flagarizer, tag *Tag, fieldValue reflect.Value, field reflect.StructField) error {
+func allocPtrIfNil(fieldValue reflect.Value) {
+	if fieldValue.Kind() == reflect.Ptr {
+		if fieldValue.IsNil() {
+			fieldValue.Set(reflect.New(fieldValue.Type().Elem()))
+		}
+	}
+}
+func invokeFlagarizersIfImplements(r KingpinRegistry, tag *Tag, fieldValue reflect.Value, name string) (impl bool, err error) {
+	if _, ok := fieldValue.Interface().(Flagarizer); ok {
+		allocPtrIfNil(fieldValue)
+		// Do fieldValue.Interface() once more as after alloc the copied value is not changed.
+		if err := invokeCustomFlagarizer(r, fieldValue.Interface().(Flagarizer), tag, fieldValue, name); err != nil {
+			return true, err
+		}
+		return true, nil
+	}
+
+	if _, ok := fieldValue.Addr().Interface().(Flagarizer); ok {
+		allocPtrIfNil(fieldValue)
+		// Do fieldValue.Interface() once more as after alloc the copied value is not changed.
+		if err := invokeCustomFlagarizer(r, fieldValue.Addr().Interface().(Flagarizer), tag, fieldValue, name); err != nil {
+			return true, err
+		}
+		return true, nil
+	}
+
+	if _, ok := fieldValue.Interface().(ValueFlagarizer); ok {
+		allocPtrIfNil(fieldValue)
+		// Do fieldValue.Interface() once more as after alloc the copied value is not changed.
+		if err := invokeCustomValueFlagarizer(r, fieldValue.Interface().(ValueFlagarizer), tag, fieldValue, name); err != nil {
+			return true, err
+		}
+		return true, nil
+	}
+
+	if _, ok := fieldValue.Addr().Interface().(ValueFlagarizer); ok {
+		allocPtrIfNil(fieldValue)
+		// Do fieldValue.Interface() once more as after alloc the copied value is not changed.
+		if err := invokeCustomValueFlagarizer(r, fieldValue.Addr().Interface().(ValueFlagarizer), tag, fieldValue, name); err != nil {
+			return true, err
+		}
+		return true, nil
+	}
+	return false, nil
+}
+
+func invokeCustomFlagarizer(r KingpinRegistry, f Flagarizer, tag *Tag, fieldValue reflect.Value, name string) error {
 	if fieldValue.Kind() != reflect.Ptr {
 		fieldValue = fieldValue.Addr()
 	}
@@ -282,18 +334,44 @@ func invokeCustomFlagarizer(r KingpinRegistry, f Flagarizer, tag *Tag, fieldValu
 		v := reflect.New(fieldValue.Type().Elem())
 		fieldValue.Set(v)
 	}
-	d := &dedupFlagRegisterer{KingpinRegistry: r}
 
 	if fieldValue.Elem().MethodByName("Flagarize").IsValid() {
-		return errors.Errorf("flagarize field %q custom Flagarizer is non receiver pointer", field.Name)
+		return errors.Errorf("flagarize field %q custom Flagarizer is non receiver pointer", name)
 	}
 
-	if err := f.Flagarize(d, tag, unsafe.Pointer(fieldValue.Pointer())); err != nil {
-		return errors.Wrapf(err, "custom Flagarizer for field %s", field.Name)
+	if err := f.Flagarize(r, tag, unsafe.Pointer(fieldValue.Pointer())); err != nil {
+		return errors.Wrapf(err, "custom Flagarizer for field %s", name)
 	}
-	if d.duplicate != "" {
-		return errors.Errorf("flagarize field %s was already registered", d.duplicate)
+	return nil
+}
+
+type flagarizeValue struct {
+	ValueFlagarizer
+	def string
+}
+
+func (f *flagarizeValue) String() string {
+	return f.def
+}
+
+func (f *flagarizeValue) Set(v string) error {
+	return f.FlagarizeSetValue(v)
+}
+
+func invokeCustomValueFlagarizer(r KingpinRegistry, vf ValueFlagarizer, tag *Tag, fieldValue reflect.Value, name string) error {
+	if fieldValue.Kind() != reflect.Ptr {
+		fieldValue = fieldValue.Addr()
 	}
+	if fieldValue.IsNil() {
+		v := reflect.New(fieldValue.Type().Elem())
+		fieldValue.Set(v)
+	}
+
+	if fieldValue.Elem().MethodByName("FlagarizeSetValue").IsValid() {
+		return errors.Errorf("flagarize field %q custom ValueFlagarizer is non receiver pointer", name)
+	}
+
+	tag.Flag(r).SetValue(&flagarizeValue{ValueFlagarizer: vf, def: tag.DefaultValue})
 	return nil
 }
 

@@ -6,16 +6,14 @@
 // Copyright (c) The Thanos Authors.
 // Licensed under the Apache License 2.0.
 
-package timeduration
+package flagarize
 
 import (
 	"bytes"
 	"fmt"
 	"time"
-	"unsafe"
 
-	"github.com/bwplotka/flagarize"
-	"github.com/bwplotka/flagarize/extflag/internal/timestamp"
+	"github.com/bwplotka/flagarize/internal/timestamp"
 	"github.com/prometheus/common/model"
 )
 
@@ -42,16 +40,16 @@ func (errs *multiError) Append(err error) {
 	}
 }
 
-// Value is a custom kingping parser for time in RFC3339
+// TimeOrDuration is a custom kingping parser for time in RFC3339
 // or duration in Go's duration format, such as "300ms", "-1.5h" or "2h45m".
 // Only one will be set.
-type Value struct {
+type TimeOrDuration struct {
 	Time *time.Time
 	Dur  *model.Duration
 }
 
-// Set converts string to Value.
-func (tdv *Value) Set(s string) error {
+// FlagarizeSetValue converts string to TimeOrDuration.
+func (tdv *TimeOrDuration) FlagarizeSetValue(s string) error {
 	var merr multiError
 	t, err := time.Parse(time.RFC3339, s)
 	if err == nil {
@@ -80,7 +78,7 @@ func (tdv *Value) Set(s string) error {
 }
 
 // String returns either time or duration.
-func (tdv *Value) String() string {
+func (tdv *TimeOrDuration) String() string {
 	switch {
 	case tdv.Time != nil:
 		return tdv.Time.String()
@@ -91,9 +89,9 @@ func (tdv *Value) String() string {
 	return "nil"
 }
 
-// PrometheusTimestamp returns Value converted to PrometheusTimestamp
+// PrometheusTimestamp returns TimeOrDuration converted to PrometheusTimestamp
 // if duration is set now+duration is converted to Timestamp.
-func (tdv *Value) PrometheusTimestamp() int64 {
+func (tdv *TimeOrDuration) PrometheusTimestamp() int64 {
 	switch {
 	case tdv.Time != nil:
 		return timestamp.FromTime(*tdv.Time)
@@ -102,13 +100,4 @@ func (tdv *Value) PrometheusTimestamp() int64 {
 	}
 
 	return 0
-}
-
-// Flagarize registers PathOrContent flag.
-func (tdv *Value) Flagarize(r flagarize.FlagRegisterer, tag *flagarize.Tag, _ unsafe.Pointer) error {
-	if tag == nil {
-		return nil
-	}
-	tag.Flag(r).SetValue(tdv)
-	return nil
 }

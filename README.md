@@ -6,20 +6,23 @@ Flagarize your Go struct to initialize your even complex struct from flags!
 
 * Allow flag parsing for any struct field using Go struct tags.
 * Minimal dependencies: Only `"gopkg.in/alecthomas/kingpin.v2"`.
-* Allows custom flagarizing. (:
+* Extensible with [custom types](#custom-type-parsing) and [custom flagarizing](#custom-flags).
+* Native supports for all [kingpin](https://github.com/alecthomas/kingpin) flag types and more like [`regexp`](./regexp.go) , [`pathorcontent`](./pathorcontent.go), [`timeorduration`](./timeorduration.go).
+
+## Usage
+
+## Custom Type Parsing
+
+
+
+## Custom Flags
 
 ## Production Examples
 
 To see production example see:
 
  * [Thanos](todo).
- * [Prometheus]()
-
-## Example
-
-```
-TBD
-```
+ * [Prometheus](todo)
 
 ## But Bartek, such Go projects already exists!
 

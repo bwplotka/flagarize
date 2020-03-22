@@ -4,6 +4,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/url"
 	"os"
@@ -41,7 +42,5 @@ func main() {
 	}
 
 	// Config is filled with values from flags.
-	_ = cfg.Field1
-
-	// Run your command...
+	fmt.Println(cfg)
 }

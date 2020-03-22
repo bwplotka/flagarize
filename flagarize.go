@@ -169,7 +169,7 @@ func Flagarize(r KingpinRegistry, s interface{}, o ...OptFunc) error {
 		}
 		return nil
 	default:
-		return errors.Errorf("object must be a pointer to struct or interface, got: %s", e)
+		return errors.Errorf("flagarize: object must be a pointer to struct or interface, got: %s", e)
 	}
 }
 

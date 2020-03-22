@@ -97,12 +97,54 @@ func WithElemSep(val string) OptFunc { return func(opt *opts) { opt.elemSep = va
 
 // Flagarize registers flags based on `flagarize:"..."` struct tags.
 //
-// If field is a type that implemented Flagarizer interface, the custom Flagarizer will be used instead of default one.
+// If field is a type that implemented Flagarizer or ValueFlagaizer interface, the custom Flagarizer will be used
+// instead of default one.
 // IMPORTANT: It is expected that struct fields are filled with values only after kingpin.Application.Parse is invoked for example:
 //
 //
-//  TBD
+//	type ComponentAOptions struct {
+//		Field1 []string `flagarize:"name=a.flag1|help=..."`
+//	}
 //
+//	func ExampleFlagarize() {
+//		// Create new kingpin app as usual.
+//		a := kingpin.New(filepath.Base(os.Args[0]), "<Your CLI description>")
+//
+//		// Define you own config.
+//		type ConfigForCLI struct {
+//			Field1 string                   `flagarize:"name=flag1|help=...|default=something"`
+//			Field2 *url.URL                 `flagarize:"name=flag2|help=...|placeholder=<URL>"`
+//			Field3 int                      `flagarize:"name=flag3|help=...|default=2144"`
+//			Field4 flagarize.TimeOrDuration `flagarize:"name=flag4|help=...|default=1m|placeholder=<time or duration>"`
+//
+//			NotFromFlags int
+//
+//			ComponentA ComponentAOptions
+//		}
+//
+//		// Create new config.
+//		cfg := &ConfigForCLI{}
+//
+//		// Flagarize it! (Register flags from config).
+//		if err := flagarize.Flagarize(a, &cfg); err != nil {
+//			fmt.Fprintln(os.Stderr, err)
+//			os.Exit(2)
+//		}
+//
+//		// You can define some fields as usual as well.
+//		var notInConfigField time.Duration
+//		a.Flag("some-field10", "...").
+//			DurationVar(&notInConfigField)
+//
+//		// Parse flags as usual.
+//		if _, err := a.Parse(os.Args[1:]); err != nil {
+//			fmt.Fprintln(os.Stderr, err)
+//			os.Exit(2)
+//		}
+//
+//		// Config is filled with flags from value!
+//		_ = cfg.Field1
+//	}
 //
 func Flagarize(r KingpinRegistry, s interface{}, o ...OptFunc) error {
 	if r == nil {

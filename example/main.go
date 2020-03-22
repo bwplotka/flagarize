@@ -42,5 +42,5 @@ func main() {
 	}
 
 	// Config is filled with values from flags.
-	fmt.Println(cfg)
+	fmt.Printf("Config Value after flagarizing & flag parsing: %+v\n", cfg)
 }

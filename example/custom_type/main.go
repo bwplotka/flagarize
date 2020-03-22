@@ -36,5 +36,5 @@ func main() {
 	if _, err := a.Parse(os.Args[1:]); err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(cfg)
+	fmt.Printf("Config Value after flagarizing & flag parsing: %+v\n", cfg)
 }

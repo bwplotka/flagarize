@@ -58,7 +58,7 @@ type ComponentAOptions struct {
 	Field1 []string `flagarize:"name=a.flag1|help=..."`
 }
 
-func ExampleFlagarize() {
+func main() {
 	// Create new kingpin app as usual.
 	a := kingpin.New(filepath.Base(os.Args[0]), "<Your CLI description>")
 
@@ -74,6 +74,11 @@ func ExampleFlagarize() {
 		ComponentA ComponentAOptions
 	}
 
+	// You can define some fields as usual as well.
+	var notInConfigField time.Duration
+	a.Flag("some-field10", "...").
+		DurationVar(&notInConfigField)
+
 	// Create new config.
 	cfg := &ConfigForCLI{}
 
@@ -83,11 +88,6 @@ func ExampleFlagarize() {
 		os.Exit(2)
 	}
 
-	// You can define some fields as usual as well.
-	var notInConfigField time.Duration
-	a.Flag("some-field10", "...").
-		DurationVar(&notInConfigField)
-
 	// Parse flags as usual.
 	if _, err := a.Parse(os.Args[1:]); err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -96,6 +96,8 @@ func ExampleFlagarize() {
 
 	// Config is filled with flags from value!
 	_ = cfg.Field1
+    
+    // Run your command...        
 }
 ```
 

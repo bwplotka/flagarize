@@ -54,24 +54,22 @@ see `TestFlagarize_OK` unit test [here](flagarize_ext_test.go).
 See below example for usage:
 
 ```go
-type ComponentAOptions struct {
-	Field1 []string `flagarize:"name=a.flag1|help=Help for field 1 in nested struct for component A."`
-}
-
 func main() {
 	// Create new kingpin app as usual.
 	a := kingpin.New(filepath.Base(os.Args[0]), "<Your CLI description>")
 
 	// Define you own config.
+    type ComponentAOptions struct {
+	    Field1 []string `flagarize:"name=a.flag1|help=Help for field 1 in nested struct for component A."`
+    }
 	type ConfigForCLI struct {
-		Field1 string                   `flagarize:"name=flag1|help=Help for field 1.|default=something"`
-		Field2 *url.URL                 `flagarize:"name=flag2|help=Help for field 2.|placeholder=<URL>"`
-		Field3 int                      `flagarize:"name=flag3|help=Help for field 3.|default=2144"`
-		Field4 flagarize.TimeOrDuration `flagarize:"name=flag4|help=Help for field 4. for field 1.p4|default=1m|placeholder=<time or duration>"`
+		Field1     string                   `flagarize:"name=flag1|help=Help for field 1.|default=something"`
+		Field2     *url.URL                 `flagarize:"name=flag2|help=Help for field 2.|placeholder=<URL>"`
+		Field3     int                      `flagarize:"name=flag3|help=Help for field 3.|default=2144"`
+		Field4     flagarize.TimeOrDuration `flagarize:"name=flag4|help=Help for field 4. for field 1.p4|default=1m|placeholder=<time or duration>"`
+		ComponentA ComponentAOptions
 
 		NotFromFlags int
-
-		ComponentA ComponentAOptions
 	}
 
 	// You can define some fields as usual as well.
@@ -90,7 +88,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// Config is filled with flags from value!
+	// Config is filled with values from flags!
 	_ = cfg.Field1
 
     // Run your command...

@@ -476,7 +476,7 @@ func ExampleFlagarize() {
 		Field1     string                   `flagarize:"name=flag1|help=Help for field 1.|default=something"`
 		Field2     *url.URL                 `flagarize:"name=flag2|help=Help for field 2.|placeholder=<URL>"`
 		Field3     int                      `flagarize:"name=flag3|help=Help for field 3.|default=2144"`
-		Field4     flagarize.TimeOrDuration `flagarize:"name=flag4|help=Help for field 4. for field 1.p4|default=1m|placeholder=<time or duration>"`
+		Field4     flagarize.TimeOrDuration `flagarize:"name=flag4|help=Help for field 4.|default=1m|placeholder=<time or duration>"`
 		ComponentA ComponentAOptions
 
 		NotFromFlags int

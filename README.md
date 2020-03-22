@@ -1,6 +1,8 @@
 # flagarize
-
+[![go.dev reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat-square)](https://pkg.go.dev/github.com/bwplotka/flagarize)
+[![Latest Release](https://img.shields.io/github/release/bwplotka/flagarize.svg?style=flat-square)](https://github.com/bwplotka/flagarize/releases/latest)
 [![CI](https://github.com/bwplotka/flagarize/workflows/test/badge.svg)](https://github.com/bwplotka/flagarize/actions?query=workflow%3Atest)
+[![Go Report Card](https://goreportcard.com/badge/github.com/bwplotka/flagarize)](https://goreportcard.com/report/github.com/bwplotka/flagarize)
 
 Flagarize your Go struct to initialize your even complex CLI config struct from flags!
 
@@ -66,7 +68,7 @@ func main() {
 		Field1     string                   `flagarize:"name=flag1|help=Help for field 1.|default=something"`
 		Field2     *url.URL                 `flagarize:"name=flag2|help=Help for field 2.|placeholder=<URL>"`
 		Field3     int                      `flagarize:"name=flag3|help=Help for field 3.|default=2144"`
-		Field4     flagarize.TimeOrDuration `flagarize:"name=flag4|help=Help for field 4. for field 1.p4|default=1m|placeholder=<time or duration>"`
+		Field4     flagarize.TimeOrDuration `flagarize:"name=flag4|help=Help for field 4.|default=1m|placeholder=<time or duration>"`
 		ComponentA ComponentAOptions
 
 		NotFromFlags int

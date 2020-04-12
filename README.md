@@ -101,7 +101,7 @@ func main() {
 
 To see production example see:
 
- * [Thanos](todo)
+ * [Thanos](https://github.com/thanos-io/thanos/pull/2267)
  * [Prometheus](https://github.com/prometheus/prometheus/pull/7026)
 
 ## But Bartek, such Go projects already exist!

@@ -5,7 +5,7 @@ FILES_TO_FMT      ?= $(shell find . -path ./vendor -prune -o -name '*.go' -print
 # The `go env GOPATH` will work for all cases for Go 1.8+.
 GOPATH            ?= $(shell go env GOPATH)
 
-TMP_GOPATH        ?= /tmp/flagarize-go
+TMP_GOPATH        ?= /tmp/flagarize-go-tmp2
 GOBIN             ?= $(firstword $(subst :, ,${GOPATH}))/bin
 GO111MODULE       ?= on
 export GO111MODULE
@@ -35,7 +35,7 @@ SED ?= $(shell which gsed 2>/dev/null || which sed)
 
 ME                ?= $(shell whoami)
 
-FAILLINT_VERSION        ?= v1.2.0
+FAILLINT_VERSION        ?= eb3cc62b577b2b0c488a41b91d49c60c676885b9
 FAILLINT                ?=$(GOBIN)/faillint-$(FAILLINT_VERSION)
 
 # fetch_go_bin_version downloads (go gets) the binary from specific version and installs it in $(GOBIN)/<bin>-<version>
@@ -48,7 +48,7 @@ define fetch_go_bin_version
 
 	@echo ">> fetching $(1)@$(2) revision/version"
 	@if [ ! -d '$(TMP_GOPATH)/src/$(1)' ]; then \
-    GOPATH='$(TMP_GOPATH)' GO111MODULE='off' go get -d -u '$(1)/...'; \
+    GOPATH='$(TMP_GOPATH)' GO111MODULE='off' go get -d '$(1)/...'; \
   else \
     CDPATH='' cd -- '$(TMP_GOPATH)/src/$(1)' && git fetch; \
   fi
@@ -165,7 +165,7 @@ endif
 #      --mem-profile-path string   Path to memory profile output file
 # to debug big allocations during linting.
 lint: ## Runs various static analysis against our code.
-lint: check-git deps $(GOLANGCILINT) $(MISSPELL) $(FAILLINT)
+lint: format check-git deps $(GOLANGCILINT) $(MISSPELL) $(FAILLINT)
 	$(call require_clean_work_tree,"detected not clean master before running lint")
 	@echo ">> verifying modules being imported"
 	@$(FAILLINT) -paths "errors=github.com/pkg/errors,github.com/thanos-io/thanos/pkg/testutil=github.com/bwplotka/flagarize/testutil" ./...

@@ -48,6 +48,17 @@ func newTestKingpin(t *testing.T) *kingpin.Application {
 }
 
 func TestFlagarize_Errors(t *testing.T) {
+	t.Run("flagarize on basic private field", func(t *testing.T) {
+		type wrong struct {
+			f string `flagarize:"help=help"`
+		}
+		w := &wrong{f: ""}
+
+		app := newTestKingpin(t)
+		err := flagarize.Flagarize(app, w)
+		testutil.NotOk(t, err)
+		testutil.Equals(t, "flagarize: flagarize struct Tag found on private field \"f\"; it has to be exported", err.Error())
+	})
 	t.Run("flagarize on private field", func(t *testing.T) {
 		type wrong struct {
 			f map[string]int `flagarize:"help=help"`

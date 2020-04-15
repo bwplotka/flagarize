@@ -38,7 +38,7 @@ var supportedStuctTagKeys = []string{nameStructTagKey, helpStructTagKey, hiddenS
 // If any field has `flagarize:` struct tag and it implements the ValueFlagarizer, this will be
 // used by kingping to parse the flag value.
 //
-// For an example see: `./timeduration.go` or `./regexp.go`
+// For an example see: `./timeduration.go` or `./regexp.go`.
 type ValueFlagarizer interface {
 	// FlagarizeSetValue is invoked on kinpgin.Parse with the flag value passed as string.
 	// It is expected from this method to parse the string to the underlying type.
@@ -54,7 +54,7 @@ type ValueFlagarizer interface {
 //
 // If the field implements both ValueFlagarizer and Flagarizer, only Flagarizer will be used.
 //
-// For an example usagesee: `./pathorcontent.go`
+// For an example usages see: `./pathorcontent.go`.
 type Flagarizer interface {
 	// Flagarize is invoked on Flagarize. If field type does not implement custom Flagarizer
 	// default one will be used.
@@ -101,7 +101,6 @@ func WithElemSep(val string) OptFunc { return func(opt *opts) { opt.elemSep = va
 // instead of default one.
 // IMPORTANT: It is expected that struct fields are filled with values only after kingpin.Application.Parse is invoked for example:
 //
-//
 //	type ComponentAOptions struct {
 //		Field1 []string `flagarize:"name=a.flag1|help=..."`
 //	}
@@ -144,8 +143,8 @@ func WithElemSep(val string) OptFunc { return func(opt *opts) { opt.elemSep = va
 //
 //		// Config is filled with flags from value!
 //		_ = cfg.Field1
-//	}
-//
+//	}.
+// Error is returned if the struct cannot be registered as flags.
 func Flagarize(r KingpinRegistry, s interface{}, o ...OptFunc) error {
 	if r == nil {
 		return errors.New("flagarize: FlagRegisterer cannot be nil")
@@ -329,6 +328,7 @@ func allocPtrIfNil(fieldValue reflect.Value) {
 		}
 	}
 }
+
 func invokeFlagarizersIfImplements(r KingpinRegistry, tag *Tag, fieldValue reflect.Value, name string) (impl bool, err error) {
 	if _, ok := fieldValue.Interface().(Flagarizer); ok {
 		allocPtrIfNil(fieldValue)

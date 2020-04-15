@@ -75,17 +75,17 @@ const (
 //     is upper case:
 //       if subsequent string is lower case:
 //         move last character of upper case string to beginning of
-//         lower case string
+//         lower case string.
 func Split(src string) (entries []string) {
-	// don't split invalid utf8
 	if !utf8.ValidString(src) {
 		return []string{src}
 	}
+
 	entries = []string{}
 	var runes [][]rune
 	var class int
 	lastClass := 0
-	// split into fields based on class of unicode character
+	// Split into fields based on class of unicode character.
 	for _, r := range src {
 		switch true {
 		case unicode.IsLower(r):
@@ -104,15 +104,15 @@ func Split(src string) (entries []string) {
 		}
 		lastClass = class
 	}
-	// handle upper case -> lower case sequences, e.g.
-	// "PDFL", "oader" -> "PDF", "Loader"
+	// Handle upper case -> lower case sequences, e.g.
+	// "PDFL", "oader" -> "PDF", "Loader".
 	for i := 0; i < len(runes)-1; i++ {
 		if unicode.IsUpper(runes[i][0]) && unicode.IsLower(runes[i+1][0]) {
 			runes[i+1] = append([]rune{runes[i][len(runes[i])-1]}, runes[i+1]...)
 			runes[i] = runes[i][:len(runes[i])-1]
 		}
 	}
-	// construct []string from results
+	// Construct []string from results.
 	for _, s := range runes {
 		if len(s) > 0 {
 			entries = append(entries, string(s))

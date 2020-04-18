@@ -6,6 +6,8 @@
 
 Flagarize your Go struct to initialize your even complex CLI config struct from flags!
 
+**NOTE: This project is in maintainance mode. This means that until new maintainer will be willing to support it, no additional features will be added. The project was fun to create and is fully functional, but benefits are not strong enough to justify lack of type safety her (thus lack of autocomplection).**
+
 ## Goals
 
 * Allow flag parsing for any struct field using Go struct tags.
@@ -96,13 +98,6 @@ func main() {
     // Run your command...
 }
 ```
-
-## Production Examples
-
-To see production example see:
-
- * [Thanos](https://github.com/thanos-io/thanos/pull/2267)
- * [Prometheus](https://github.com/prometheus/prometheus/pull/7026)
 
 ## But Bartek, such Go projects already exist!
 

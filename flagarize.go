@@ -216,6 +216,10 @@ func parseStruct(r KingpinRegistry, value reflect.Value, o opts) error {
 			return errors.Errorf("flagarize struct Tag found on non-addressable field %q", field.Name)
 		}
 
+		if _, ok := pointerToNativeMap[field.Type.String()]; ok {
+			return errors.Errorf("flagarize pointer to native type is not allowed for field %q", field.Name)
+		}
+
 		// Favor custom Flagarizers if specified.
 		d := &dedupFlagRegisterer{KingpinRegistry: r}
 		ok, err := invokeFlagarizersIfImplements(d, tag, fieldValue, field.Name)
@@ -520,4 +524,21 @@ func isTrue(v string) bool {
 		return false
 	}
 	return b
+}
+
+var pointerToNativeMap = map[string]bool {
+	"*string":  true,
+	"*bool":    true,
+	"*uint":    true,
+	"*uint8":   true,
+	"*uint16":  true,
+	"*uint32":  true,
+	"*uint64":  true,
+	"*int":     true,
+	"*int8":    true,
+	"*int16":   true,
+	"*int32":   true,
+	"*int64":   true,
+	"*float32": true,
+	"*float64": true,
 }

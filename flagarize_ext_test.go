@@ -47,6 +47,50 @@ func newTestKingpin(t *testing.T) *kingpin.Application {
 	return app
 }
 
+func TestFlagarize_PointerToNative(t *testing.T) {
+	t.Run("flagarize on field with pointer to int", func(t *testing.T) {
+		x := 2
+		type wrong struct {
+			F *int `flagarize:"help=help"`
+		}
+		w := &wrong{F: &x}
+
+		app := newTestKingpin(t)
+		err := flagarize.Flagarize(app, w)
+		testutil.NotOk(t, err)
+		testutil.Equals(t, "flagarize: flagarize pointer to native type is not allowed for field \"F\"", err.Error())
+	})
+	t.Run("flagarize on field with pointer to string", func(t *testing.T) {
+		x := ""
+		type wrong struct {
+			F *string `flagarize:"help=help"`
+		}
+		w := &wrong{F: &x}
+
+		app := newTestKingpin(t)
+		err := flagarize.Flagarize(app, w)
+		testutil.NotOk(t, err)
+		testutil.Equals(t, "flagarize: flagarize pointer to native type is not allowed for field \"F\"", err.Error())
+	})
+	t.Run("flagarize on field with pointer to bool", func(t *testing.T) {
+		x := true
+
+		type wrongInner struct {
+			F *bool `flagarize:"help=help"`
+		}
+		type wrongOuter struct {
+			WrongInner *wrongInner `flagarize:"help=help"`
+		}
+
+		wInner := wrongInner{F: &x}
+		wOuter := &wrongOuter{WrongInner: &wInner}
+
+		app := newTestKingpin(t)
+		err := flagarize.Flagarize(app, wOuter)
+		testutil.NotOk(t, err)
+		testutil.Equals(t, "flagarize: flagarize struct Tag found on not supported type ptr *flagarize_test.wrongInner for field \"WrongInner\"", err.Error())
+	})
+}
 func TestFlagarize_Errors(t *testing.T) {
 	t.Run("flagarize on basic private field", func(t *testing.T) {
 		type wrong struct {
